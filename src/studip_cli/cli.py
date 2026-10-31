@@ -8,7 +8,7 @@ import sys
 from datetime import datetime
 
 from . import __version__
-from .commands import dateien, download, kurse
+from .commands import dateien, download, kurse, termine
 from .errors import StudipError, UsageError
 from .output import emit_json
 
@@ -68,6 +68,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     download_parser.set_defaults(handler=_run_download)
 
+    termine_parser = subparsers.add_parser(
+        "termine", help="Termine eines Kurses oder der eigenen Kurse anzeigen"
+    )
+    termine_parser.add_argument(
+        "kursname", nargs="?", help="Kursname; ohne Angabe alle eigenen Kurse"
+    )
+    termine_parser.set_defaults(handler=_run_termine)
+
     return parser
 
 
@@ -83,6 +91,10 @@ def _run_download(args: argparse.Namespace, json_mode: bool) -> int:
     return download.run(
         json_mode, args.kursname, args.dateiname, args.ziel, args.ja
     )
+
+
+def _run_termine(args: argparse.Namespace, json_mode: bool) -> int:
+    return termine.run(json_mode, args.kursname)
 
 
 def _split_json(argv: list[str]) -> tuple[bool, list[str]]:
