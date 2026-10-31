@@ -8,7 +8,7 @@ import sys
 from datetime import datetime
 
 from . import __version__
-from .commands import dateien, kurse
+from .commands import dateien, download, kurse
 from .errors import StudipError, UsageError
 from .output import emit_json
 
@@ -55,6 +55,19 @@ def build_parser() -> argparse.ArgumentParser:
     dateien_parser.add_argument("kursname", help="Kursname (oder Teil davon)")
     dateien_parser.set_defaults(handler=_run_dateien)
 
+    download_parser = subparsers.add_parser(
+        "download", help="Datei(en) eines Kurses lokal speichern"
+    )
+    download_parser.add_argument("kursname", help="Kursname (oder Teil davon)")
+    download_parser.add_argument(
+        "dateiname", nargs="?", help="Dateiname; ohne Angabe alle Dateien"
+    )
+    download_parser.add_argument("--ziel", help="Zielordner (Standard: ~/Downloads)")
+    download_parser.add_argument(
+        "--ja", action="store_true", help="Vorhandene Dateien ohne Nachfrage überschreiben"
+    )
+    download_parser.set_defaults(handler=_run_download)
+
     return parser
 
 
@@ -64,6 +77,12 @@ def _run_kurse(args: argparse.Namespace, json_mode: bool) -> int:
 
 def _run_dateien(args: argparse.Namespace, json_mode: bool) -> int:
     return dateien.run(json_mode, args.kursname)
+
+
+def _run_download(args: argparse.Namespace, json_mode: bool) -> int:
+    return download.run(
+        json_mode, args.kursname, args.dateiname, args.ziel, args.ja
+    )
 
 
 def _split_json(argv: list[str]) -> tuple[bool, list[str]]:
