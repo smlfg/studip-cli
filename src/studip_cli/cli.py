@@ -1,0 +1,133 @@
+"""Kommandozeile für studip."""
+
+from __future__ import annotations
+
+import argparse
+import os
+import sys
+from datetime import datetime
+
+from . import __version__
+from .commands import kurse
+from .errors import StudipError, UsageError
+from .output import emit_json
+
+
+class _Parser(argparse.ArgumentParser):
+    def error(self, message: str) -> None:  # type: ignore[override]
+        raise UsageError(message)
+
+
+def _version() -> str:
+    return f"%(prog)s {__version__}"
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = _Parser(
+        prog="studip",
+        description=(
+            "Stud.IP im Terminal: Kurse, Dateien, Termine und Ankündigungen "
+            "über die offizielle JSON:API."
+        ),
+    )
+    parser.add_argument("--version", action="version", version=_version())
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="JSON ausgeben (auch wenn stdout kein Terminal ist)",
+    )
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    kurse_parser = subparsers.add_parser(
+        "kurse", help="Kurse suchen oder eigene Kurse auflisten"
+    )
+    kurse_parser.add_argument(
+        "suchbegriff", nargs="?", help="Suchbegriff (Name oder Teil des Namens)"
+    )
+    kurse_parser.add_argument(
+        "--semester", help="Semestername oder Semester-ID"
+    )
+    kurse_parser.set_defaults(handler=_run_kurse)
+
+    return parser
+
+
+def _run_kurse(args: argparse.Namespace, json_mode: bool) -> int:
+    return kurse.run(json_mode, args.suchbegriff, args.semester)
+
+
+def _split_json(argv: list[str]) -> tuple[bool, list[str]]:
+    forced = False
+    cleaned: list[str] = []
+    for token in argv:
+        if token == "--json":
+            forced = True
+        else:
+            cleaned.append(token)
+    return forced, cleaned
+
+
+def _validate_heute() -> None:
+    value = os.environ.get("STUDIP_HEUTE")
+    if not value:
+        return
+    try:
+        datetime.strptime(value, "%Y-%m-%d")
+    except ValueError as exc:
+        raise UsageError(
+            f"Ungültiges STUDIP_HEUTE: {value!r}",
+            "STUDIP_HEUTE als JJJJ-MM-TT setzen",
+        ) from exc
+
+
+def _emit_error(json_mode: bool, error: StudipError) -> None:
+    if json_mode:
+        emit_json(error.as_json())
+        return
+    sys.stderr.write(f"Fehler: {error.message}\n")
+    if error.next_step:
+        sys.stderr.write(f"Nächster Schritt: {error.next_step}\n")
+    sys.stderr.flush()
+
+
+def main(argv: list[str] | None = None) -> int:
+    raw = list(sys.argv[1:] if argv is None else argv)
+    forced_json, cleaned = _split_json(raw)
+    json_mode = forced_json or not sys.stdout.isatty()
+    try:
+        parser = build_parser()
+        args = parser.parse_args(cleaned)
+        _validate_heute()
+        return int(args.handler(args, json_mode) or 0)
+    except StudipError as error:
+        _emit_error(json_mode, error)
+        return error.exit_code
+    except KeyboardInterrupt:
+        _emit_error(
+            json_mode,
+            StudipError("aborted", "Abgebrochen.", "Erneut ausführen", 130),
+        )
+        return 130
+    except EOFError:
+        _emit_error(
+            json_mode,
+            UsageError("Eingabe abgebrochen", "studip login erneut ausführen"),
+        )
+        return 2
+    except BrokenPipeError:
+        return 1
+    except Exception as exc:  # noqa: BLE001 - niemals Traceback im Terminal
+        _emit_error(
+            json_mode,
+            StudipError(
+                "internal",
+                f"Unerwarteter Fehler: {exc}",
+                "studip --help anzeigen oder Support informieren",
+                1,
+            ),
+        )
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
