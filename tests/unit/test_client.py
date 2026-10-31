@@ -8,7 +8,7 @@ import httpx
 import pytest
 
 from studip_cli.client import Client, parse_courses, parse_file_refs
-from studip_cli.errors import LoginFailed, LoginRequired, SourceError
+from studip_cli.errors import LoginFailed, LoginRequired, NetworkError, SourceError
 from studip_cli.format import format_size
 
 FIXTURES = Path(__file__).resolve().parents[1] / "fixtures" / "ux"
@@ -104,3 +104,13 @@ def test_kaputtes_json_ist_quellenfehler():
     with _client(handler) as client:
         with pytest.raises(SourceError):
             client.search_courses("physik")
+
+
+def test_netzwerkfehler_ist_network_exit_3():
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectError("kein netz", request=request)
+
+    with _client(handler) as client:
+        with pytest.raises(NetworkError) as info:
+            client.search_courses("physik")
+    assert info.value.exit_code == 3
