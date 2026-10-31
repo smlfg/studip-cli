@@ -37,7 +37,6 @@ Zugangsdaten hier sind erfunden.
 
 ```ux-session
 $ pipx install git+https://github.com/smlfg/studip-cli
-< studip
 $ studip login
 < Stud.IP-Adresse:
 > https://demo.studip.de
