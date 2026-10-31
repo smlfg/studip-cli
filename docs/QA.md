@@ -4,6 +4,8 @@
 - Prüfer: separater Prüfer (S5), nicht der Entwickler
 - Version/Commit: `studip 0.1.0`, Repo-Commit `7a46cc9` (SHA von `src/studip_cli/cli.py`
   im pipx-Venv und im Repo identisch)
+- Nachprüfung (S6): Fix `eb9bb06`; betroffenen Befehl erneut gegen den
+  QA-Fake-Server ausgeführt (`scratch/qa/s6/`), danach UX-Gates erneut PASS
 - Installation: `pipx install git+https://github.com/smlfg/studip-cli` in
   `scratch/pipx` (Protokoll `scratch/qa/pipx-install.log`); alle Aufrufe nur über
   `PATH=$PWD/scratch/pipx/bin:$PATH`
@@ -16,7 +18,8 @@
 
 ## Ergebnis
 
-**34 / 35 OK.** Belege gekürzt; vollständige Protokolle unter `scratch/qa/s5/`.
+**35 / 35 OK.** Belege gekürzt; vollständige Protokolle unter `scratch/qa/s5/`,
+Nachprüfung des Semesterfilters unter `scratch/qa/s6/`.
 
 | Prüfung | Befehl | Erwartet | Ergebnis | Beleg (gekürzt) |
 |---|---|---|---|---|
@@ -40,7 +43,7 @@
 | Leere Suche | `studip kurse nix` | freundliche Leer-Antwort, Exit 0 | OK | 22-kurse-leer.log: `Keine Kurse gefunden.` |
 | Leerer Kurs | `studip dateien "Physik II: Elektrodynamik"` | `Keine Dateien gefunden.` | OK | 23-dateien-leer.log |
 | Groß-/Kleinschreibung | `studip kurse PHYSIK`, `studip dateien "physik i: mechanik"` | Auflösung unabhängig von Schreibweise | OK | 24/25-*.log, Exit 0 |
-| Semesterfilter mit Suche | `studip kurse physik --semester "WiSe 2026/27"` | nur Kurse aus WiSe 2026/27 | **FAIL** | 27-kurse-semester-json.out enthält Physik II mit `semester: "SoSe 2027"`; Fixture kurse_gemischt.json (hierfür gebaut) |
+| Semesterfilter mit Suche | `studip kurse physik --semester "WiSe 2026/27"` | nur Kurse aus WiSe 2026/27 | OK (nach Fix eb9bb06) | 27-kurse-semester-json.out enthält nur Physik I und III; Physik II (`SoSe 2027`) fehlt; Beleg `scratch/qa/s6/` |
 | Mehrdeutig ohne TTY | `studip dateien Physik` (stdout kein TTY) | Exit 2, Fehler + nächster Schritt | OK | 29-*.out: `Mehrere Kurse gefunden … Eindeutigeren Kursnamen angeben` |
 | mehrdeutig im TTY | `studip dateien Physik` + Auswahl `1` | Auswahlmenü, dann Trefferanzeige | OK | 30-kurs-mehrdeutig-tty.log |
 | Download alle | `studip download "Physik I: Mechanik" --ziel …` | alle 3 Dateien | OK | 31-download-alle-files.txt |
@@ -59,10 +62,8 @@
 
 ## Offene FAILs
 
-1. **Semesterfilter wird bei Suchbegriff nicht clientseitig angewendet**
-   (kurse mit SUCHBEGRIFF + `--semester`): `studip kurse physik --semester
-   "WiSe 2026/27" --json` liefert `Physik II: Elektrodynamik` mit
-   `semester: "SoSe 2027"` mit (27-kurse-semester-json.out). Ohne Suchbegriff
-   (`studip kurse --semester …`) stimmt das Ergebnis (28-*.log). Beide Aufrufe
-   enden mit Exit 0, gehört also auch ohne `--json` falsch angezeigt. Vorzu
-   Fix: Ergebnis manuell nach prüfen (hier: das `semester`-Feld in `kurse`-JSON).
+Keine. Der frühere FAIL (Semesterfilter bei Suchbegriff) ist in `eb9bb06`
+behoben: Der Filter wird jetzt zusätzlich clientseitig über Semester-ID und
+Semestername angewendet. Nachprüfung mit demselben Befehl gegen den
+QA-Fake-Server: Exit 0, nur WiSe-Kurse (`scratch/qa/s6/27-kurse-semester-json.out`).
+UX-Gates danach erneut PASS (`scratch/qa/s6/ux-check.md`, `ux-session.md`).
