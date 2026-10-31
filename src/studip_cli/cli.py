@@ -8,7 +8,7 @@ import sys
 from datetime import datetime
 
 from . import __version__
-from .commands import kurse
+from .commands import dateien, kurse
 from .errors import StudipError, UsageError
 from .output import emit_json
 
@@ -49,11 +49,21 @@ def build_parser() -> argparse.ArgumentParser:
     )
     kurse_parser.set_defaults(handler=_run_kurse)
 
+    dateien_parser = subparsers.add_parser(
+        "dateien", help="Ordner und Dateien eines Kurses anzeigen"
+    )
+    dateien_parser.add_argument("kursname", help="Kursname (oder Teil davon)")
+    dateien_parser.set_defaults(handler=_run_dateien)
+
     return parser
 
 
 def _run_kurse(args: argparse.Namespace, json_mode: bool) -> int:
     return kurse.run(json_mode, args.suchbegriff, args.semester)
+
+
+def _run_dateien(args: argparse.Namespace, json_mode: bool) -> int:
+    return dateien.run(json_mode, args.kursname)
 
 
 def _split_json(argv: list[str]) -> tuple[bool, list[str]]:
