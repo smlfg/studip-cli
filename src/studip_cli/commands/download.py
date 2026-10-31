@@ -96,14 +96,21 @@ def run(
                     "Schreibrechte prüfen oder --ziel angeben",
                     1,
                 ) from exc
+            size = item.get("groesse")
+            try:
+                size = int(size)  # type: ignore[arg-type]
+            except (TypeError, ValueError):
+                size = 0
+            if size <= 0:
+                size = len(content)
             saved.append(
                 {
                     "name": name,
                     "pfad": str(path),
-                    "groesse": len(content),
+                    "groesse": size,
                 }
             )
-            lines.append(f"Datei: {name} ({format_size(len(content))})")
+            lines.append(f"Datei: {name} ({format_size(size)})")
             lines.append(f"Gespeichert: {name}")
 
     if json_mode:
