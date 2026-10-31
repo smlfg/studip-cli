@@ -8,6 +8,7 @@ import httpx
 import pytest
 
 from studip_cli.client import Client, parse_courses, parse_file_refs
+from studip_cli.commands.common import resolve_semester
 from studip_cli.errors import LoginFailed, LoginRequired, NetworkError, SourceError
 from studip_cli.format import format_size
 
@@ -77,6 +78,61 @@ def test_kurssuche_setzt_filter_und_basic_auth():
     assert seen["query"]["filter[q]"] == ["physik"]
     assert seen["auth"].startswith("Basic ")
     assert seen["accept"] == "application/vnd.api+json"
+
+
+def test_kurssuche_filtert_semester_clientseitig():
+    seen: dict[str, object] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["query"] = parse_qs(urlsplit(str(request.url)).query)
+        return httpx.Response(
+            200,
+            json=_payload("kurse_gemischt.json"),
+            headers={"Content-Type": "application/vnd.api+json"},
+        )
+
+    with _client(handler) as client:
+        courses = client.search_courses(
+            "physik", "wise-2026", "WiSe 2026/27"
+        )
+
+    assert [course["id"] for course in courses] == ["phy-1", "phy-3"]
+    assert seen["query"]["filter[q]"] == ["physik"]
+    assert seen["query"]["filter[semester]"] == ["wise-2026"]
+
+
+def test_eigene_kurse_filtert_semester_clientseitig():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json=_payload("kurse_gemischt.json"),
+            headers={"Content-Type": "application/vnd.api+json"},
+        )
+
+    with _client(handler) as client:
+        courses = client.my_courses("wise-2026", "WiSe 2026/27")
+
+    assert [course["id"] for course in courses] == ["phy-1", "phy-3"]
+
+
+def test_resolve_semester_liefert_id_und_name():
+    payload = {
+        "data": [
+            {"type": "semesters", "id": "wise-2026", "attributes": {"title": "WiSe 2026/27"}}
+        ]
+    }
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json=payload,
+            headers={"Content-Type": "application/vnd.api+json"},
+        )
+
+    expected = ("wise-2026", "WiSe 2026/27")
+    with _client(handler) as client:
+        assert resolve_semester(client, "WiSe 2026/27") == expected
+        assert resolve_semester(client, "wise-2026") == expected
 
 
 def test_http_401_wird_login_required():

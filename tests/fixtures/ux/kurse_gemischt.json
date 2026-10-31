@@ -1,0 +1,39 @@
+{
+  "meta": {
+    "page": {
+      "offset": 0,
+      "limit": 30,
+      "total": 3
+    },
+    "fixture": "gemischte Semester, um clientseitige Filterung zu pruefen"
+  },
+  "data": [
+    {
+      "type": "courses",
+      "id": "phy-1",
+      "attributes": {
+        "course-number": "PHY-101",
+        "title": "Physik I: Mechanik",
+        "start-semester": "WiSe 2026/27"
+      }
+    },
+    {
+      "type": "courses",
+      "id": "phy-2",
+      "attributes": {
+        "course-number": "PHY-201",
+        "title": "Physik II: Elektrodynamik",
+        "start-semester": "SoSe 2027"
+      }
+    },
+    {
+      "type": "courses",
+      "id": "phy-3",
+      "attributes": {
+        "course-number": "PHY-301",
+        "title": "Physik III: Optik",
+        "start-semester": "WiSe 2026/27"
+      }
+    }
+  ]
+}

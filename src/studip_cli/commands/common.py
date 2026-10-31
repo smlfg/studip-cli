@@ -14,18 +14,18 @@ def session_client() -> Client:
     return Client(base_url, user, password)
 
 
-def resolve_semester(client: Client, value: str) -> str:
-    """Liefert die Semester-ID zu Name oder ID; unbekannt ist ein Quellenfehler."""
+def resolve_semester(client: Client, value: str) -> tuple[str, str]:
+    """Liefert (ID, Name) zu Name oder ID; unbekannt ist ein Quellenfehler."""
     text = value.strip()
     if not text:
         raise SourceError("Leerer Semesterwert", "Semestername oder ID angeben")
     try:
         semesters = client.semesters()
     except SourceError:
-        return text
+        return text, text
     for semester in semesters:
         if semester["id"] == text or semester["name"].casefold() == text.casefold():
-            return semester["id"]
+            return semester["id"], semester["name"]
     raise SourceError(
         f"Unbekanntes Semester: {text}",
         "Semestername prüfen oder ohne --semester aufrufen",

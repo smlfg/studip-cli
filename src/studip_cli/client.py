@@ -65,6 +65,26 @@ def parse_courses(payload: Any) -> list[dict]:
     return [parse_course(item) for item in _items(payload)]
 
 
+def filter_courses_by_semester(
+    courses: list[dict],
+    semester_id: str | None = None,
+    semester_name: str | None = None,
+) -> list[dict]:
+    """Filtert clientseitig, weil die API den Semesterfilter nicht immer anwendet."""
+    wanted = {
+        value.casefold()
+        for value in (semester_id, semester_name)
+        if value and value.strip()
+    }
+    if not wanted:
+        return courses
+    return [
+        course
+        for course in courses
+        if str(course.get("semester", "")).casefold() in wanted
+    ]
+
+
 def parse_file_ref(item: dict) -> dict:
     return {
         "id": str(item.get("id", "")),
@@ -261,7 +281,10 @@ class Client:
         return parse_user(self._get_json(f"{API}/users/me", login_check=login_check))
 
     def search_courses(
-        self, query: str | None = None, semester: str | None = None
+        self,
+        query: str | None = None,
+        semester: str | None = None,
+        semester_name: str | None = None,
     ) -> list[dict]:
         params: dict[str, str] = {}
         if query:
@@ -269,18 +292,22 @@ class Client:
             params["filter[fields]"] = "title_lecturer_number"
         if semester:
             params["filter[semester]"] = semester
-        return parse_courses(self._get_json(f"{API}/courses", params))
+        courses = parse_courses(self._get_json(f"{API}/courses", params))
+        return filter_courses_by_semester(courses, semester, semester_name)
 
-    def my_courses(self, semester: str | None = None) -> list[dict]:
+    def my_courses(
+        self, semester: str | None = None, semester_name: str | None = None
+    ) -> list[dict]:
         params: dict[str, str] = {}
         if semester:
             params["filter[semester]"] = semester
         try:
-            return parse_courses(
+            courses = parse_courses(
                 self._get_json(f"{API}/users/me/courses", params)
             )
         except NotFound:
-            return parse_courses(self._get_json(f"{API}/courses", params))
+            courses = parse_courses(self._get_json(f"{API}/courses", params))
+        return filter_courses_by_semester(courses, semester, semester_name)
 
     def semesters(self) -> list[dict]:
         return parse_semesters(self._get_json(f"{API}/semesters"))

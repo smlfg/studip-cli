@@ -9,11 +9,15 @@ from .common import resolve_semester, session_client
 
 def run(json_mode: bool, suchbegriff: str | None = None, semester: str | None = None) -> int:
     with session_client() as client:
-        semester_id = resolve_semester(client, semester) if semester else None
+        semester_id, semester_name = (
+            resolve_semester(client, semester) if semester else (None, None)
+        )
         if suchbegriff:
-            courses = client.search_courses(suchbegriff, semester_id)
+            courses = client.search_courses(
+                suchbegriff, semester_id, semester_name
+            )
         else:
-            courses = client.my_courses(semester_id)
+            courses = client.my_courses(semester_id, semester_name)
 
     if not courses:
         lines = ["Keine Kurse gefunden."]
