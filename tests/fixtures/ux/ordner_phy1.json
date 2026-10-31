@@ -1,0 +1,82 @@
+{
+  "meta": {
+    "page": {
+      "offset": 0,
+      "limit": 30,
+      "total": 2
+    },
+    "fixture": "anonymisierte Ordnerantwort nach dem Stud.IP-JSON:API-Schema"
+  },
+  "data": [
+    {
+      "type": "folders",
+      "id": "folder-material",
+      "attributes": {
+        "folder-type": "StandardFolder",
+        "name": "Materialien",
+        "description": "Vorlesungsmaterial",
+        "is-visible": true,
+        "is-readable": true,
+        "is-writable": false,
+        "is-editable": false,
+        "is-subfolder-allowed": false
+      },
+      "relationships": {
+        "parent": {
+          "data": null
+        },
+        "file-refs": {
+          "data": [
+            {
+              "type": "file-refs",
+              "id": "fref-skript"
+            },
+            {
+              "type": "file-refs",
+              "id": "fref-uebung-1"
+            }
+          ]
+        },
+        "folders": {
+          "data": []
+        }
+      },
+      "links": {
+        "self": "jsonapi.php/v1/folders/folder-material"
+      }
+    },
+    {
+      "type": "folders",
+      "id": "folder-uebungen",
+      "attributes": {
+        "folder-type": "StandardFolder",
+        "name": "Übungen",
+        "description": "Übungsblätter und Lösungen",
+        "is-visible": true,
+        "is-readable": true,
+        "is-writable": false,
+        "is-editable": false,
+        "is-subfolder-allowed": false
+      },
+      "relationships": {
+        "parent": {
+          "data": null
+        },
+        "file-refs": {
+          "data": [
+            {
+              "type": "file-refs",
+              "id": "fref-loesung-1"
+            }
+          ]
+        },
+        "folders": {
+          "data": []
+        }
+      },
+      "links": {
+        "self": "jsonapi.php/v1/folders/folder-uebungen"
+      }
+    }
+  ]
+}

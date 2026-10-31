@@ -1,0 +1,48 @@
+{
+  "meta": {
+    "page": {
+      "offset": 0,
+      "limit": 30,
+      "total": 2
+    },
+    "fixture": "anonymisierte Kursantwort nach dem Stud.IP-JSON:API-Schema"
+  },
+  "links": {
+    "first": "/jsonapi.php/v1/courses?page%5Boffset%5D=0&page%5Blimit%5D=30",
+    "last": "/jsonapi.php/v1/courses?page%5Boffset%5D=0&page%5Blimit%5D=30"
+  },
+  "data": [
+    {
+      "type": "courses",
+      "id": "phy-1",
+      "attributes": {
+        "course-number": "PHY-101",
+        "title": "Physik I: Mechanik",
+        "subtitle": "Vorlesung mit Übung",
+        "course-type": "Vorlesung",
+        "description": "Grundlagen der klassischen Mechanik.",
+        "location": "Hörsaal A",
+        "start-semester": "WiSe 2026/27"
+      },
+      "links": {
+        "self": "jsonapi.php/v1/courses/phy-1"
+      }
+    },
+    {
+      "type": "courses",
+      "id": "phy-2",
+      "attributes": {
+        "course-number": "PHY-201",
+        "title": "Physik II: Elektrodynamik",
+        "subtitle": "Vorlesung mit Übung",
+        "course-type": "Vorlesung",
+        "description": "Elektrizitätslehre und Magnetismus.",
+        "location": "Hörsaal B",
+        "start-semester": "WiSe 2026/27"
+      },
+      "links": {
+        "self": "jsonapi.php/v1/courses/phy-2"
+      }
+    }
+  ]
+}

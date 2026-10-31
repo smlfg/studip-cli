@@ -1,0 +1,33 @@
+{
+  "meta": {
+    "synthetic": true,
+    "note": "Login-Antwort fuer den Fake-Server, keine echten Personendaten"
+  },
+  "data": {
+    "type": "users",
+    "id": "user-example-1",
+    "attributes": {
+      "username": "max.mustermann@example.invalid",
+      "formatted-name": "Max Mustermann",
+      "family-name": "Mustermann",
+      "given-name": "Max",
+      "name-prefix": "",
+      "name-suffix": "",
+      "permission": "autor",
+      "email": "max.mustermann@example.invalid",
+      "phone": null,
+      "homepage": null,
+      "address": null
+    },
+    "relationships": {
+      "courses": {
+        "links": {
+          "related": "jsonapi.php/v1/users/user-example-1/courses"
+        }
+      }
+    },
+    "links": {
+      "self": "jsonapi.php/v1/users/user-example-1"
+    }
+  }
+}
