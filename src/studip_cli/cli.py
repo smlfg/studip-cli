@@ -8,7 +8,7 @@ import sys
 from datetime import datetime
 
 from . import __version__
-from .commands import dateien, download, kurse, news, termine
+from .commands import auth, dateien, download, kurse, news, termine
 from .errors import StudipError, UsageError
 from .output import emit_json
 
@@ -37,6 +37,21 @@ def build_parser() -> argparse.ArgumentParser:
         help="JSON ausgeben (auch wenn stdout kein Terminal ist)",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
+
+    login_parser = subparsers.add_parser(
+        "login", help="interaktiv anmelden und Zugangsdaten speichern"
+    )
+    login_parser.set_defaults(handler=_run_login)
+
+    logout_parser = subparsers.add_parser(
+        "logout", help="gespeicherte Sitzung löschen (idempotent)"
+    )
+    logout_parser.set_defaults(handler=_run_logout)
+
+    whoami_parser = subparsers.add_parser(
+        "whoami", help="angemeldeten Nutzer anzeigen"
+    )
+    whoami_parser.set_defaults(handler=_run_whoami)
 
     kurse_parser = subparsers.add_parser(
         "kurse", help="Kurse suchen oder eigene Kurse auflisten"
@@ -85,6 +100,18 @@ def build_parser() -> argparse.ArgumentParser:
     news_parser.set_defaults(handler=_run_news)
 
     return parser
+
+
+def _run_login(args: argparse.Namespace, json_mode: bool) -> int:
+    return auth.run_login(json_mode)
+
+
+def _run_logout(args: argparse.Namespace, json_mode: bool) -> int:
+    return auth.run_logout(json_mode)
+
+
+def _run_whoami(args: argparse.Namespace, json_mode: bool) -> int:
+    return auth.run_whoami(json_mode)
 
 
 def _run_kurse(args: argparse.Namespace, json_mode: bool) -> int:
